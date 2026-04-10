@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Phone, MapPin, Clock, Instagram, Facebook, ChevronRight, Star, Calendar, ArrowRight } from 'lucide-react';
+import { Menu, X, Phone, MapPin, Clock, Instagram, Facebook, ChevronRight, Star, Calendar, ArrowRight, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,13 @@ import { toast } from 'sonner';
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    name: '',
+    phone: '',
+    date: '',
+    service: '',
+    notes: ''
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,8 +33,20 @@ function App() {
     }
   };
 
-  const handleBooking = () => {
-    toast.success('Randevu talebiniz alındı! En kısa sürede size dönüş yapacağız.');
+  const handleBookingSubmit = () => {
+    if (!bookingForm.name || !bookingForm.phone || !bookingForm.date) {
+      toast.error('Lütfen zorunlu alanları doldurun (Ad, Telefon, Tarih)');
+      return;
+    }
+
+    const whatsappNumber = '905377895898';
+    const message = `Merhaba Su Keskin Beauty!%0A%0A*Randevu Talebi*%0A%0A👤 *Ad Soyad:* ${bookingForm.name}%0A📞 *Telefon:* ${bookingForm.phone}%0A📅 *Tarih:* ${bookingForm.date}%0A💆 *Hizmet:* ${bookingForm.service || 'Belirtilmedi'}%0A📝 *Notlar:* ${bookingForm.notes || 'Yok'}%0A%0ALütfen müsaitlik durumunuzu bildirin. Teşekkürler!`;
+    
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast.success('WhatsApp açılıyor... Randevu talebiniz hazır!');
+    setBookingForm({ name: '', phone: '', date: '', service: '', notes: '' });
   };
 
   const navLinks = [
@@ -152,13 +171,48 @@ function App() {
                     <DialogTitle className="text-2xl font-light text-rose-900">Randevu Al</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
-                    <Input placeholder="Adınız Soyadınız" />
-                    <Input placeholder="Telefon Numaranız" type="tel" />
-                    <Input placeholder="Tarih" type="date" />
-                    <Textarea placeholder="Hizmet ve notlarınız..." />
-                    <Button onClick={handleBooking} className="w-full bg-rose-500 hover:bg-rose-600">
-                      Randevu Talebi Gönder
+                    <Input 
+                      placeholder="Adınız Soyadınız *" 
+                      value={bookingForm.name}
+                      onChange={(e) => setBookingForm({...bookingForm, name: e.target.value})}
+                    />
+                    <Input 
+                      placeholder="Telefon Numaranız *" 
+                      type="tel"
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
+                    />
+                    <Input 
+                      placeholder="Randevu Tarihi *" 
+                      type="date"
+                      value={bookingForm.date}
+                      onChange={(e) => setBookingForm({...bookingForm, date: e.target.value})}
+                    />
+                    <select 
+                      className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      value={bookingForm.service}
+                      onChange={(e) => setBookingForm({...bookingForm, service: e.target.value})}
+                    >
+                      <option value="">Hizmet Seçin (İsteğe Bağlı)</option>
+                      <option value="Bölgesel İncelme">Bölgesel İncelme</option>
+                      <option value="Lazer Epilasyon">Lazer Epilasyon</option>
+                      <option value="Kalıcı Makyaj">Kalıcı Makyaj</option>
+                      <option value="Dudak Vitamini">Dudak Vitamini</option>
+                      <option value="Cilt Bakım Protokolleri">Cilt Bakım Protokolleri</option>
+                      <option value="Saç Çoğaltma">Saç Çoğaltma</option>
+                    </select>
+                    <Textarea 
+                      placeholder="Eklemek istediğiniz notlar..." 
+                      value={bookingForm.notes}
+                      onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
+                    />
+                    <Button onClick={handleBookingSubmit} className="w-full bg-green-500 hover:bg-green-600">
+                      <Send className="w-4 h-4 mr-2" />
+                      WhatsApp'tan Gönder
                     </Button>
+                    <p className="text-xs text-gray-400 text-center">
+                      * Zorunlu alanlar. WhatsApp üzerinden randevu talebiniz iletilecektir.
+                    </p>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -191,10 +245,63 @@ function App() {
                   {link.name}
                 </button>
               ))}
-              <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white mt-4">
-                <Calendar className="w-4 h-4 mr-2" />
-                Randevu Al
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white mt-4">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Randevu Al
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-light text-rose-900">Randevu Al</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <Input 
+                      placeholder="Adınız Soyadınız *" 
+                      value={bookingForm.name}
+                      onChange={(e) => setBookingForm({...bookingForm, name: e.target.value})}
+                    />
+                    <Input 
+                      placeholder="Telefon Numaranız *" 
+                      type="tel"
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
+                    />
+                    <Input 
+                      placeholder="Randevu Tarihi *" 
+                      type="date"
+                      value={bookingForm.date}
+                      onChange={(e) => setBookingForm({...bookingForm, date: e.target.value})}
+                    />
+                    <select 
+                      className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      value={bookingForm.service}
+                      onChange={(e) => setBookingForm({...bookingForm, service: e.target.value})}
+                    >
+                      <option value="">Hizmet Seçin (İsteğe Bağlı)</option>
+                      <option value="Bölgesel İncelme">Bölgesel İncelme</option>
+                      <option value="Lazer Epilasyon">Lazer Epilasyon</option>
+                      <option value="Kalıcı Makyaj">Kalıcı Makyaj</option>
+                      <option value="Dudak Vitamini">Dudak Vitamini</option>
+                      <option value="Cilt Bakım Protokolleri">Cilt Bakım Protokolleri</option>
+                      <option value="Saç Çoğaltma">Saç Çoğaltma</option>
+                    </select>
+                    <Textarea 
+                      placeholder="Eklemek istediğiniz notlar..." 
+                      value={bookingForm.notes}
+                      onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
+                    />
+                    <Button onClick={handleBookingSubmit} className="w-full bg-green-500 hover:bg-green-600">
+                      <Send className="w-4 h-4 mr-2" />
+                      WhatsApp'tan Gönder
+                    </Button>
+                    <p className="text-xs text-gray-400 text-center">
+                      * Zorunlu alanlar. WhatsApp üzerinden randevu talebiniz iletilecektir.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         )}
@@ -236,13 +343,48 @@ function App() {
                     <DialogTitle className="text-2xl font-light text-rose-900">Randevu Al</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
-                    <Input placeholder="Adınız Soyadınız" />
-                    <Input placeholder="Telefon Numaranız" type="tel" />
-                    <Input placeholder="Tarih" type="date" />
-                    <Textarea placeholder="Hizmet ve notlarınız..." />
-                    <Button onClick={handleBooking} className="w-full bg-rose-500 hover:bg-rose-600">
-                      Randevu Talebi Gönder
+                    <Input 
+                      placeholder="Adınız Soyadınız *" 
+                      value={bookingForm.name}
+                      onChange={(e) => setBookingForm({...bookingForm, name: e.target.value})}
+                    />
+                    <Input 
+                      placeholder="Telefon Numaranız *" 
+                      type="tel"
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
+                    />
+                    <Input 
+                      placeholder="Randevu Tarihi *" 
+                      type="date"
+                      value={bookingForm.date}
+                      onChange={(e) => setBookingForm({...bookingForm, date: e.target.value})}
+                    />
+                    <select 
+                      className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      value={bookingForm.service}
+                      onChange={(e) => setBookingForm({...bookingForm, service: e.target.value})}
+                    >
+                      <option value="">Hizmet Seçin (İsteğe Bağlı)</option>
+                      <option value="Bölgesel İncelme">Bölgesel İncelme</option>
+                      <option value="Lazer Epilasyon">Lazer Epilasyon</option>
+                      <option value="Kalıcı Makyaj">Kalıcı Makyaj</option>
+                      <option value="Dudak Vitamini">Dudak Vitamini</option>
+                      <option value="Cilt Bakım Protokolleri">Cilt Bakım Protokolleri</option>
+                      <option value="Saç Çoğaltma">Saç Çoğaltma</option>
+                    </select>
+                    <Textarea 
+                      placeholder="Eklemek istediğiniz notlar..." 
+                      value={bookingForm.notes}
+                      onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
+                    />
+                    <Button onClick={handleBookingSubmit} className="w-full bg-green-500 hover:bg-green-600">
+                      <Send className="w-4 h-4 mr-2" />
+                      WhatsApp'tan Gönder
                     </Button>
+                    <p className="text-xs text-gray-400 text-center">
+                      * Zorunlu alanlar. WhatsApp üzerinden randevu talebiniz iletilecektir.
+                    </p>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -374,7 +516,14 @@ function App() {
                               <p className="text-lg font-medium text-gray-700">{service.duration}</p>
                             </div>
                           </div>
-                          <Button onClick={handleBooking} className="w-full mt-4 bg-rose-500 hover:bg-rose-600">
+                          <Button 
+                            onClick={() => {
+                              setBookingForm({...bookingForm, service: service.title});
+                              toast.success(`${service.title} için randevu formu açılıyor...`);
+                            }} 
+                            className="w-full mt-4 bg-rose-500 hover:bg-rose-600"
+                          >
+                            <Calendar className="w-4 h-4 mr-2" />
                             Randevu Al
                           </Button>
                         </div>
@@ -636,14 +785,43 @@ function App() {
               <h3 className="text-2xl font-light mb-6">Bize Mesaj Gönderin</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Input placeholder="Adınız" />
-                  <Input placeholder="Soyadınız" />
+                  <Input 
+                    placeholder="Adınız" 
+                    value={bookingForm.name}
+                    onChange={(e) => setBookingForm({...bookingForm, name: e.target.value})}
+                  />
+                  <Input 
+                    placeholder="Soyadınız"
+                    onChange={(e) => setBookingForm({...bookingForm, name: bookingForm.name + ' ' + e.target.value})}
+                  />
                 </div>
-                <Input placeholder="E-posta Adresiniz" type="email" />
-                <Input placeholder="Telefon Numaranız" type="tel" />
-                <Textarea placeholder="Mesajınız..." className="min-h-[120px]" />
-                <Button onClick={handleBooking} className="w-full bg-rose-500 hover:bg-rose-600 text-white">
-                  Mesaj Gönder
+                <Input 
+                  placeholder="Telefon Numaranız" 
+                  type="tel"
+                  value={bookingForm.phone}
+                  onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
+                />
+                <Textarea 
+                  placeholder="Mesajınız..." 
+                  className="min-h-[120px]"
+                  value={bookingForm.notes}
+                  onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
+                />
+                <Button 
+                  onClick={() => {
+                    if (!bookingForm.name || !bookingForm.phone) {
+                      toast.error('Lütfen ad ve telefon numaranızı girin');
+                      return;
+                    }
+                    const whatsappNumber = '905377895898';
+                    const message = `Merhaba Su Keskin Beauty!%0A%0A*Mesaj*%0A%0A👤 *Ad Soyad:* ${bookingForm.name}%0A📞 *Telefon:* ${bookingForm.phone}%0A📝 *Mesaj:* ${bookingForm.notes || 'Yok'}%0A%0ASizinle iletişime geçmenizi rica ediyorum.`;
+                    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+                    toast.success('WhatsApp açılıyor...');
+                  }} 
+                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  WhatsApp'tan Gönder
                 </Button>
               </div>
             </div>
